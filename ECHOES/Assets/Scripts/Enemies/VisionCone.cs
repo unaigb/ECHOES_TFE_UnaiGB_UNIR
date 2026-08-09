@@ -36,6 +36,7 @@ namespace Echoes.Enemies
         {
             float angle = _camera.ConeAngle;
             float range = _camera.ConeRange;
+            LayerMask obstacleLayer = _camera.ObstacleLayer;
 
             Mesh mesh = new Mesh();
             Vector3[] vertices = new Vector3[rayCount + 2];
@@ -50,7 +51,13 @@ namespace Echoes.Enemies
             {
                 float currentAngle = startAngle + angleStep * i;
                 float rad = (currentAngle + 90f) * Mathf.Deg2Rad;
-                vertices[i + 1] = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f) * range;
+                Vector2 localDir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+                Vector2 worldDir = transform.TransformDirection(localDir);
+
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, worldDir, range, obstacleLayer);
+                float hitRange = hit.collider != null ? hit.distance : range;
+
+                vertices[i + 1] = localDir * hitRange;
             }
 
             for (int i = 0; i < rayCount; i++)

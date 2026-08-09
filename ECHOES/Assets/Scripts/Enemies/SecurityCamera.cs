@@ -1,4 +1,5 @@
 using UnityEngine;
+using Echoes.Managers;
 
 namespace Echoes.Enemies
 {
@@ -16,12 +17,14 @@ namespace Echoes.Enemies
         [SerializeField] private float coneRange = 5f;
         [SerializeField] private LayerMask playerLayer;
         [SerializeField] private LayerMask obstacleLayer;
-        [SerializeField] private float alertDuration = 1.5f;
+        [SerializeField] private float alertDuration = 0.5f;
 
         public CameraState State { get; private set; } = CameraState.Patrolling;
         public float ConeAngle => coneAngle;
         public float ConeRange => coneRange;
+        public LayerMask ObstacleLayer => obstacleLayer;
 
+        private float _baseAngle;
         private float _currentAngle;
         private float _rotationDirection = 1f;
         private float _alertTimer;
@@ -30,6 +33,7 @@ namespace Echoes.Enemies
         private void Awake()
         {
             _visionCone = GetComponent<VisionCone>();
+            _baseAngle = transform.eulerAngles.z;
             _currentAngle = patrolAngleMin;
         }
 
@@ -55,7 +59,7 @@ namespace Echoes.Enemies
                 _rotationDirection = 1f;
             }
 
-            transform.rotation = Quaternion.Euler(0f, 0f, _currentAngle);
+            transform.rotation = Quaternion.Euler(0f, 0f, _baseAngle + _currentAngle);
         }
 
         private void CheckDetection()

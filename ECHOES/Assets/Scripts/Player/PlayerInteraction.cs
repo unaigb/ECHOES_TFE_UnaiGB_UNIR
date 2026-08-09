@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 using Echoes.Interactables;
 
 namespace Echoes.Player
@@ -8,6 +9,8 @@ namespace Echoes.Player
     {
         [SerializeField] private float interactRadius = 0.8f;
         [SerializeField] private LayerMask interactableLayer;
+
+        public event Action<IInteractable> OnInteracted;
 
         private InputAction _interactAction;
 
@@ -34,7 +37,8 @@ namespace Echoes.Player
                 if (hit.TryGetComponent<IInteractable>(out var interactable))
                 {
                     interactable.Interact();
-                    break; // solo interactúa con el más cercano
+                    OnInteracted?.Invoke(interactable);
+                    break;
                 }
             }
         }

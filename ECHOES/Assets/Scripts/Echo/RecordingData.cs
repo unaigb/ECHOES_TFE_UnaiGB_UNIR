@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Echoes.Interactables;
 
 namespace Echoes.Echo
 {
@@ -12,14 +13,22 @@ namespace Echoes.Echo
         public Vector2 position;
     }
 
+    public class InteractionEvent
+    {
+        public float time;
+        public IInteractable target;
+    }
+
     public class RecordingData
     {
         public Vector2 startPosition;
         public List<FrameSnapshot> frames = new();
+        public List<InteractionEvent> interactions = new();
 
         public void Clear()
         {
             frames.Clear();
+            interactions.Clear();
         }
     }
 }

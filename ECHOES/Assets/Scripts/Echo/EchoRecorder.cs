@@ -14,6 +14,7 @@ namespace Echoes.Echo
         private RecordingData _data = new();
         private float _recordingTimer;
         private Rigidbody2D _rb;
+        private Player.PlayerInteraction _playerInteraction;
         private InputAction _recordAction;
         private InputAction _deployAction;
         private InputAction _rewindAction;
@@ -22,6 +23,7 @@ namespace Echoes.Echo
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
+            _playerInteraction = GetComponent<Player.PlayerInteraction>();
             _recordAction = InputSystem.actions.FindAction("Player/Record");
             _deployAction = InputSystem.actions.FindAction("Player/DeployEcho");
             _rewindAction = InputSystem.actions.FindAction("Player/Rewind");
@@ -32,6 +34,8 @@ namespace Echoes.Echo
             _recordAction.performed += OnRecord;
             _deployAction.performed += OnDeploy;
             _rewindAction.performed += OnRewind;
+            if (_playerInteraction != null)
+                _playerInteraction.OnInteracted += OnPlayerInteracted;
         }
 
         private void OnDisable()
@@ -39,6 +43,8 @@ namespace Echoes.Echo
             _recordAction.performed -= OnRecord;
             _deployAction.performed -= OnDeploy;
             _rewindAction.performed -= OnRewind;
+            if (_playerInteraction != null)
+                _playerInteraction.OnInteracted -= OnPlayerInteracted;
         }
 
         private void FixedUpdate()
@@ -88,6 +94,17 @@ namespace Echoes.Echo
             _data.Clear();
             State = EchoState.Idle;
             Debug.Log("[Echo] Rebobinado. Grabación descartada.");
+        }
+
+        private void OnPlayerInteracted(Interactables.IInteractable interactable)
+        {
+            if (State != EchoState.Recording) return;
+
+            _data.interactions.Add(new InteractionEvent
+            {
+                time = _recordingTimer,
+                target = interactable
+            });
         }
 
         private void StartRecording()
