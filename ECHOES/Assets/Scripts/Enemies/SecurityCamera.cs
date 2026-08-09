@@ -123,7 +123,7 @@ namespace Echoes.Enemies
             if (newState == CameraState.Detected)
             {
                 Debug.Log("[Camera] Jugador detectado. Reiniciando sala.");
-                LevelManager.Instance?.RestartLevel();
+                LevelManager.Instance?.TriggerDetection();
             }
         }
 

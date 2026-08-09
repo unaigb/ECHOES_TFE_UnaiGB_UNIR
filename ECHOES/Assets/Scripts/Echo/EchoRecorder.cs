@@ -10,6 +10,7 @@ namespace Echoes.Echo
         [SerializeField] private GameObject echoPrefab;
 
         public EchoState State { get; private set; } = EchoState.Idle;
+        public float RecordingProgress => maxRecordingDuration > 0 ? _recordingTimer / maxRecordingDuration : 0f;
 
         private RecordingData _data = new();
         private float _recordingTimer;
