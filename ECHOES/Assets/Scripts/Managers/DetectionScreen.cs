@@ -49,7 +49,7 @@ namespace Echoes.Managers
             overlay.color = BlackOverlay;
 
             // Texto aparece
-            detectionText.text = "LOCALIZADO";
+            detectionText.text = "DETECTED";
             detectionText.color = NeonRed;
 
             t = 0f;

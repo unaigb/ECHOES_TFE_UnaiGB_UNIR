@@ -14,9 +14,11 @@ namespace Echoes.Player
             _moveAction = InputSystem.actions.FindAction("Player/Move");
         }
 
+        public bool InputEnabled { get; set; } = true;
+
         private void Update()
         {
-            MoveInput = _moveAction != null ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
+            MoveInput = (InputEnabled && _moveAction != null) ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
         }
     }
 }

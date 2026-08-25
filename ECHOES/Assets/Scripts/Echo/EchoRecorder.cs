@@ -10,6 +10,7 @@ namespace Echoes.Echo
         [SerializeField] private GameObject echoPrefab;
 
         public EchoState State { get; private set; } = EchoState.Idle;
+        public bool IsUnlocked { get; private set; } = false;
         public float RecordingProgress => maxRecordingDuration > 0 ? _recordingTimer / maxRecordingDuration : 0f;
 
         private RecordingData _data = new();
@@ -64,8 +65,14 @@ namespace Echoes.Echo
                 StopRecording();
         }
 
+        public void Unlock()
+        {
+            IsUnlocked = true;
+        }
+
         private void OnRecord(InputAction.CallbackContext ctx)
         {
+            if (!IsUnlocked) return;
             if (State == EchoState.Idle || State == EchoState.Recorded)
                 StartRecording();
             else if (State == EchoState.Recording)
@@ -74,6 +81,7 @@ namespace Echoes.Echo
 
         private void OnDeploy(InputAction.CallbackContext ctx)
         {
+            if (!IsUnlocked) return;
             if (State != EchoState.Recorded) return;
 
             if (_activeEcho != null)
@@ -87,6 +95,7 @@ namespace Echoes.Echo
 
         private void OnRewind(InputAction.CallbackContext ctx)
         {
+            if (!IsUnlocked) return;
             if (State == EchoState.Idle) return;
 
             if (_activeEcho != null)

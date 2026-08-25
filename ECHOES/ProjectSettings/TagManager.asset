@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - Echo
+  - Box
+  - PlayerFeet
   layers:
   - Default
   - TransparentFX
@@ -14,7 +16,7 @@ TagManager:
   - UI
   - Player
   - Walls
-  - 
+  - Echo
   - 
   - 
   - 
@@ -41,6 +43,24 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Floor
+    uniqueID: 368364573
+    locked: 0
+  - name: Environment
+    uniqueID: 2177929167
+    locked: 0
+  - name: Decoration
+    uniqueID: 2912240095
+    locked: 0
+  - name: Characters
+    uniqueID: 2505192113
+    locked: 0
+  - name: Overhead
+    uniqueID: 125207971
+    locked: 0
+  - name: UI
+    uniqueID: 3429314681
     locked: 0
   m_RenderingLayers:
   - Default

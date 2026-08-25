@@ -16,7 +16,7 @@ namespace Echoes.Interactables
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (!other.CompareTag("Player") && !other.CompareTag("Echo")) return;
+            if (!other.CompareTag("PlayerFeet") && !other.CompareTag("Echo") && !other.CompareTag("Box")) return;
             _activatorCount++;
             if (_activatorCount == 1)
                 targetDoor?.Open();
@@ -24,7 +24,7 @@ namespace Echoes.Interactables
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            if (!other.CompareTag("Player") && !other.CompareTag("Echo")) return;
+            if (!other.CompareTag("PlayerFeet") && !other.CompareTag("Echo") && !other.CompareTag("Box")) return;
             _activatorCount--;
             if (_activatorCount <= 0)
             {
