@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using Echoes.Interactables;
 
@@ -19,7 +18,7 @@ namespace Echoes.Camera
 
         private UnityEngine.Camera _cam;
         private float _targetSize;
-        private bool _isTransitioning;
+        private Transform _defaultTarget;
 
         private float _minX = float.MinValue, _maxX = float.MaxValue;
         private float _minY = float.MinValue, _maxY = float.MaxValue;
@@ -29,22 +28,52 @@ namespace Echoes.Camera
             _cam = GetComponent<UnityEngine.Camera>();
             _targetSize = defaultSize;
             _cam.orthographicSize = defaultSize;
+            _defaultTarget = target;
+        }
+
+        public void SetSpectateTarget(Transform spectateTarget)
+        {
+            target = spectateTarget != null ? spectateTarget : _defaultTarget;
+        }
+
+        public float GetDamping() => damping;
+
+        public void SetDamping(float value)
+        {
+            damping = value;
         }
 
         private void LateUpdate()
         {
-            if (_isTransitioning || target == null) return;
+            if (target == null) return;
 
+            // Clampa el OBJETIVO, no la posición ya interpolada: así, si los bounds se ponen más
+            // restrictivos de golpe (p.ej. justo al cruzar una puerta), la cámara viaja hasta el
+            // punto válido con el damping normal en vez de teletransportarse ahí en un frame.
             Vector3 desired = new Vector3(target.position.x, target.position.y, transform.position.z);
-            Vector3 next = Vector3.Lerp(transform.position, desired, damping * Time.deltaTime);
-            transform.position = ClampToLimits(next);
+            Vector3 clampedDesired = ClampToLimits(desired);
+            transform.position = Vector3.Lerp(transform.position, clampedDesired, damping * Time.deltaTime);
 
             _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, _targetSize, zoomSpeed * Time.deltaTime);
         }
 
+        private bool _zoomLocked;
+
+        // Para cinemáticas: mientras está bloqueado, SetZoomedOut() (el que dispara el cruce
+        // normal de una sala) no toca el tamaño de cámara — solo SetCustomSize() manda.
+        public void SetZoomLocked(bool locked) => _zoomLocked = locked;
+
         public void SetZoomedOut(bool zoomedOut)
         {
+            if (_zoomLocked) return;
             _targetSize = zoomedOut ? zoomedOutSize : defaultSize;
+        }
+
+        // Para cinemáticas: cualquier tamaño arbitrario, no solo default/zoomed-out.
+        // Para volver al tamaño normal de juego, usa SetZoomedOut(false) (usa defaultSize).
+        public void SetCustomSize(float size)
+        {
+            _targetSize = size;
         }
 
         public void ClearLimits()
@@ -62,37 +91,6 @@ namespace Echoes.Camera
                 case ExitDirection.Up:    _maxY = value; break;
                 case ExitDirection.Down:  _minY = value; break;
             }
-        }
-
-        public IEnumerator TransitionToRoom(ExitDirection exitDirection, float duration = 0.35f)
-        {
-            _isTransitioning = true;
-            Vector3 startPos = transform.position;
-
-            float halfW = _cam.orthographicSize * _cam.aspect;
-            float halfH = _cam.orthographicSize;
-            Vector3 pan = exitDirection switch
-            {
-                ExitDirection.Right => new Vector3(halfW * 2f,  0f, 0f),
-                ExitDirection.Left  => new Vector3(-halfW * 2f, 0f, 0f),
-                ExitDirection.Up    => new Vector3(0f,  halfH * 2f, 0f),
-                ExitDirection.Down  => new Vector3(0f, -halfH * 2f, 0f),
-                _ => Vector3.zero
-            };
-            Vector3 targetPos = startPos + pan;
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                float eased = 1f - (1f - t) * (1f - t); // ease-out quad
-                transform.position = Vector3.Lerp(startPos, targetPos, eased);
-                yield return null;
-            }
-
-            transform.position = targetPos;
-            _isTransitioning = false;
         }
 
         private Vector3 ClampToLimits(Vector3 pos)

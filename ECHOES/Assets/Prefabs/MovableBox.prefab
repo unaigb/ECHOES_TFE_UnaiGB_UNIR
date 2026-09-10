@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 9208842404693232950}
   - component: {fileID: 1529239906794652176}
   - component: {fileID: 5801618778498246737}
-  m_Layer: 0
+  - component: {fileID: 7356604150918558529}
+  m_Layer: 7
   m_Name: MovableBox
   m_TagString: Box
   m_Icon: {fileID: 0}
@@ -79,9 +80,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -2117038129
-  m_SortingLayer: 2
-  m_SortingOrder: 1
+  m_SortingLayerID: -1789775183
+  m_SortingLayer: 4
+  m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 60015008, guid: ddcaf7e7e4bfa454fa73bbd00f091f30, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -162,7 +163,20 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!114 &7356604150918558529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8125215418016083840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 190ffbb87e027cb49aceb8356dcdf067, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Echoes.Interactables.MovableBox
+  isBig: 0

@@ -1,8 +1,7 @@
-using System.Collections;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Echoes.Camera;
-using Echoes.Player;
 using Echoes.Interactables;
 
 namespace Echoes.Managers
@@ -11,14 +10,20 @@ namespace Echoes.Managers
     {
         public static LevelManager Instance { get; private set; }
 
+        public event Action<string> OnRoomChanged;
+        public string CurrentRoomName { get; private set; }
+
         [Header("Detection")]
         [SerializeField] private DetectionScreen detectionScreen;
 
         [Header("Room Transitions")]
         [SerializeField] private CameraFollow cameraFollow;
-        [SerializeField] private PlayerInputHandler playerInput;
         [SerializeField] private Rigidbody2D playerRigidbody;
-        [SerializeField] private ExitZone[] initialRoomExits;
+        [SerializeField] private RoomBoundary[] initialRoomExits;
+
+        [Header("Debug — probar una sala directamente (dejar vacío para la partida real)")]
+        [SerializeField] private Transform debugStartPosition;
+        [SerializeField] private RoomBoundary[] debugStartRoomExits;
 
         private void Awake()
         {
@@ -29,6 +34,14 @@ namespace Echoes.Managers
             }
             Instance = this;
 
+#if UNITY_EDITOR
+            if (debugStartPosition != null)
+            {
+                playerRigidbody.position = debugStartPosition.position;
+                ApplyExitBarriers(debugStartRoomExits.Length > 0 ? debugStartRoomExits : initialRoomExits);
+                return;
+            }
+#endif
             ApplyExitBarriers(initialRoomExits);
         }
 
@@ -45,47 +58,46 @@ namespace Echoes.Managers
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
-        public void StartRoomTransition(ExitZone crossedExit, ExitZone[] nextRoomExits)
+        // Sin barrido guionizado: los bounds de sala son contiguos por construcción (el muro de
+        // cruce es a la vez el límite "saliente" de la sala vieja y el "entrante" de la nueva),
+        // así que basta con actualizarlos al vuelo — la cámara sigue al jugador exactamente
+        // igual que el resto del tiempo, sin ninguna animación ni freeze de input especial.
+        public void StartRoomTransition(RoomBoundary crossedExit, RoomBoundary[] nextRoomExits, ExitDirection panDirection)
         {
-            StartCoroutine(RoomTransitionSequence(crossedExit, nextRoomExits));
+            RegisterRoomBarriers(crossedExit, nextRoomExits, panDirection);
         }
 
-        private IEnumerator RoomTransitionSequence(ExitZone crossedExit, ExitZone[] nextRoomExits)
-        {
-            float duration = 0.35f;
-
-            playerInput.InputEnabled = false;
-            playerRigidbody.linearVelocity = Vector2.zero;
-
-            yield return StartCoroutine(cameraFollow.TransitionToRoom(crossedExit.Direction, duration));
-
-            RegisterRoomBarriers(crossedExit, nextRoomExits);
-            playerInput.InputEnabled = true;
-        }
-
-        private void RegisterRoomBarriers(ExitZone crossedExit, ExitZone[] nextRoomExits)
+        private void RegisterRoomBarriers(RoomBoundary crossedExit, RoomBoundary[] nextRoomExits, ExitDirection panDirection)
         {
             cameraFollow.ClearLimits();
 
-            ExitDirection flipped = crossedExit.Direction switch
-            {
-                ExitDirection.Right => ExitDirection.Left,
-                ExitDirection.Left  => ExitDirection.Right,
-                ExitDirection.Up    => ExitDirection.Down,
-                ExitDirection.Down  => ExitDirection.Up,
-                _ => crossedExit.Direction
-            };
-            cameraFollow.ApplyBarrier(flipped, crossedExit.GetBarrierValue());
+            // El muro de vuelta de la sala nueva queda justo donde cruzaste, en el lado opuesto al barrido.
+            cameraFollow.ApplyBarrier(RoomBoundary.Flip(panDirection), crossedExit.GetBarrierValue());
 
             ApplyExitBarriers(nextRoomExits);
         }
 
-        private void ApplyExitBarriers(ExitZone[] exits)
+        private bool _zoomOutLocked;
+
+        private void ApplyExitBarriers(RoomBoundary[] exits)
         {
             if (exits == null) return;
+
+            string roomName = null;
             foreach (var exit in exits)
-                if (exit != null)
-                    cameraFollow.ApplyBarrier(exit.Direction, exit.GetBarrierValue());
+            {
+                if (exit == null) continue;
+                cameraFollow.ApplyBarrier(exit.Direction, exit.GetBarrierValue());
+                if (exit.ZoomOutInThisRoom) _zoomOutLocked = true;
+                if (!string.IsNullOrEmpty(exit.RoomName)) roomName = exit.RoomName;
+            }
+            cameraFollow.SetZoomedOut(_zoomOutLocked);
+
+            if (roomName != null)
+            {
+                CurrentRoomName = roomName;
+                OnRoomChanged?.Invoke(roomName);
+            }
         }
     }
 }

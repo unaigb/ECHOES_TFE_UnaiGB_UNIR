@@ -12,6 +12,7 @@ namespace Echoes.Echo
         public EchoState State { get; private set; } = EchoState.Idle;
         public bool IsUnlocked { get; private set; } = false;
         public float RecordingProgress => maxRecordingDuration > 0 ? _recordingTimer / maxRecordingDuration : 0f;
+        public Transform ActiveEchoTransform => _activeEcho != null ? _activeEcho.transform : null;
 
         private RecordingData _data = new();
         private float _recordingTimer;

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1273541188030156086}
   - component: {fileID: 1201118628301732123}
   - component: {fileID: 2335642505006318397}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Door_Vertical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -2117038129
-  m_SortingLayer: 3
+  m_SortingLayer: 2
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: -700092379, guid: e18138db58918ff419b31cd8bc02367e, type: 3}
@@ -168,7 +168,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7689479238930282014}
   - component: {fileID: 4151860875849220441}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: SecondSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -236,7 +236,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -2117038129
-  m_SortingLayer: 3
+  m_SortingLayer: 2
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 551884200, guid: e18138db58918ff419b31cd8bc02367e, type: 3}

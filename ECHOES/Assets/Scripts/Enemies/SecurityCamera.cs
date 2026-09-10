@@ -23,6 +23,9 @@ namespace Echoes.Enemies
         public float ConeAngle => coneAngle;
         public float ConeRange => coneRange;
         public LayerMask ObstacleLayer => obstacleLayer;
+        public float PatrolAngleMin => patrolAngleMin;
+        public float PatrolAngleMax => patrolAngleMax;
+        public float CurrentSweepAngle => _currentAngle;
 
         private float _baseAngle;
         private float _currentAngle;
@@ -129,8 +132,37 @@ namespace Echoes.Enemies
 
         private void OnDrawGizmosSelected()
         {
-            Gizmos.color = Color.red;
+            Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
             Gizmos.DrawWireSphere(transform.position, coneRange);
+
+            Vector3 origin = transform.position;
+            Vector3 forward = Application.isPlaying ? transform.up : (Vector3)(Quaternion.Euler(0f, 0f, transform.eulerAngles.z) * Vector2.up);
+
+            Vector3 leftEdge = Quaternion.Euler(0f, 0f, coneAngle * 0.5f) * forward * coneRange;
+            Vector3 rightEdge = Quaternion.Euler(0f, 0f, -coneAngle * 0.5f) * forward * coneRange;
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(origin, origin + leftEdge);
+            Gizmos.DrawLine(origin, origin + rightEdge);
+
+            const int arcSegments = 12;
+            Vector3 prevPoint = origin + leftEdge;
+            for (int i = 1; i <= arcSegments; i++)
+            {
+                float t = coneAngle * (0.5f - (float)i / arcSegments);
+                Vector3 point = origin + Quaternion.Euler(0f, 0f, t) * forward * coneRange;
+                Gizmos.DrawLine(prevPoint, point);
+                prevPoint = point;
+            }
+
+            if (!Application.isPlaying)
+            {
+                Gizmos.color = Color.cyan;
+                Vector3 patrolLeft = Quaternion.Euler(0f, 0f, patrolAngleMax) * forward * (coneRange * 0.5f);
+                Vector3 patrolRight = Quaternion.Euler(0f, 0f, patrolAngleMin) * forward * (coneRange * 0.5f);
+                Gizmos.DrawLine(origin, origin + patrolLeft);
+                Gizmos.DrawLine(origin, origin + patrolRight);
+            }
         }
     }
 }

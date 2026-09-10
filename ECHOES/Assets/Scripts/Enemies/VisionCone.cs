@@ -25,6 +25,7 @@ namespace Echoes.Enemies
             _material = new Material(Shader.Find("Sprites/Default"));
             _material.color = patrolColor;
             _meshRenderer.material = _material;
+            _meshRenderer.sortingLayerName = "Overhead";
         }
 
         private void LateUpdate()
