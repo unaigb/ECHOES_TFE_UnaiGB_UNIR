@@ -613,6 +613,7 @@ MonoBehaviour:
   interactableLayer:
     serializedVersion: 2
     m_Bits: 8
+  input: {fileID: 5843164982087863874}
 --- !u!114 &4232319823870613948
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -9,6 +9,8 @@ namespace Echoes.Player
     {
         [SerializeField] private float interactRadius = 0.8f;
         [SerializeField] private LayerMask interactableLayer;
+        [Tooltip("Para no interactuar mientras el input del jugador está bloqueado (cinemáticas, diálogos de Ir1s).")]
+        [SerializeField] private PlayerInputHandler input;
 
         public event Action<IInteractable> OnInteracted;
 
@@ -31,6 +33,8 @@ namespace Echoes.Player
 
         private void OnInteract(InputAction.CallbackContext ctx)
         {
+            if (input != null && !input.InputEnabled) return;
+
             Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, interactRadius, interactableLayer);
             foreach (var hit in hits)
             {

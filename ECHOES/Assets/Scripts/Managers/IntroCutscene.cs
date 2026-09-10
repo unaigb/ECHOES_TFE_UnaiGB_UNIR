@@ -4,6 +4,7 @@ using Echoes.Player;
 using Echoes.Camera;
 using Echoes.UI;
 using Echoes.Interactables;
+using Echoes.Dialogue;
 
 namespace Echoes.Managers
 {
@@ -14,6 +15,8 @@ namespace Echoes.Managers
         [SerializeField] private CameraFollow cameraFollow;
         [SerializeField] private LetterboxBars letterbox;
         [SerializeField] private Door startDoor;
+        [Tooltip("Opcional: primer diálogo de Ir1s, se lanza justo al terminar la cinemática de entrada.")]
+        [SerializeField] private DialogueSequence firstDialogue;
         [Tooltip("CanvasGroup del HUD de juego (RecordingHUD, indicador de sala, etc.) — se oculta durante la cinemática y aparece con un fundido al terminar.")]
         [SerializeField] private CanvasGroup hudCanvasGroup;
         [SerializeField] private float hudFadeInTime = 0.6f;
@@ -66,7 +69,8 @@ namespace Echoes.Managers
 
             playerInput.InputEnabled = true;
 
-            // TODO (Fase 4): disparar aquí el primer diálogo de la IA una vez exista el sistema.
+            if (firstDialogue != null && DialogueManager.Instance != null)
+                DialogueManager.Instance.Play(firstDialogue);
         }
 
         private IEnumerator FadeCanvasGroup(CanvasGroup group, float from, float to, float duration)

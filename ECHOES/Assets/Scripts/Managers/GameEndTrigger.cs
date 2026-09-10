@@ -1,4 +1,5 @@
 using UnityEngine;
+using Echoes.Dialogue;
 
 namespace Echoes.Managers
 {
@@ -6,6 +7,8 @@ namespace Echoes.Managers
     public class GameEndTrigger : MonoBehaviour
     {
         [SerializeField] private EndingSequence endingSequence;
+        [Tooltip("Opcional: segunda intervención de cierre de Ir1s (registro con fisura). Se reproduce antes de la secuencia de final.")]
+        [SerializeField] private DialogueSequence endingDialogue;
 
         private bool _triggered;
 
@@ -18,7 +21,11 @@ namespace Echoes.Managers
         {
             if (_triggered || !other.CompareTag("PlayerFeet")) return;
             _triggered = true;
-            endingSequence.Show();
+
+            if (endingDialogue != null && DialogueManager.Instance != null)
+                DialogueManager.Instance.Play(endingDialogue, () => endingSequence.Show());
+            else
+                endingSequence.Show();
         }
     }
 }

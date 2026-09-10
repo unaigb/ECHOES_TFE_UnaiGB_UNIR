@@ -11,6 +11,8 @@ namespace Echoes.Managers
         [Tooltip("Panel del cómic de cierre. Déjalo sin sprite asignado hasta tener el arte final — la secuencia lo saltará automáticamente.")]
         [SerializeField] private Image comicImage;
         [SerializeField] private TextMeshProUGUI thanksText;
+        [Tooltip("CanvasGroup que envuelve el texto de agradecimiento y todo lo que cuelgue de él (subtítulo, logo...). El fade-in se hace sobre este grupo, no solo sobre el TMP, para que los hijos también aparezcan progresivamente.")]
+        [SerializeField] private CanvasGroup thanksGroup;
         [SerializeField] private string thanksMessage = "Gracias por jugar la demo";
 
         [Header("Tiempos (segundos)")]
@@ -23,7 +25,7 @@ namespace Echoes.Managers
         {
             overlay.color = Color.clear;
             SetImageAlpha(comicImage, 0f);
-            thanksText.alpha = 0f;
+            thanksGroup.alpha = 0f;
             thanksText.text = thanksMessage;
             gameObject.SetActive(false);
         }
@@ -45,7 +47,7 @@ namespace Echoes.Managers
                 yield return FadeImageAlpha(comicImage, 1f, 0f, comicFadeTime);
             }
 
-            yield return FadeText(thanksText, 0f, 1f, textFadeTime);
+            yield return FadeCanvasGroup(thanksGroup, 0f, 1f, textFadeTime);
         }
 
         private static void SetImageAlpha(Image image, float alpha)
@@ -79,16 +81,16 @@ namespace Echoes.Managers
             SetImageAlpha(image, to);
         }
 
-        private IEnumerator FadeText(TextMeshProUGUI text, float from, float to, float duration)
+        private IEnumerator FadeCanvasGroup(CanvasGroup group, float from, float to, float duration)
         {
             float t = 0f;
             while (t < duration)
             {
                 t += Time.deltaTime;
-                text.alpha = Mathf.Lerp(from, to, t / duration);
+                group.alpha = Mathf.Lerp(from, to, t / duration);
                 yield return null;
             }
-            text.alpha = to;
+            group.alpha = to;
         }
     }
 }

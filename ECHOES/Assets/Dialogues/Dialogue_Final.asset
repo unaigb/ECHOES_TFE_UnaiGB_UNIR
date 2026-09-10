@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de9cc60427f64ab44925ed839f653ced, type: 3}
+  m_Name: Dialogue_Final
+  m_EditorClassIdentifier: Assembly-CSharp::Echoes.Dialogue.DialogueSequence
+  speakerName: Ir1s
+  lines:
+  - text: "Final test\u2026 complete."
+    register: 1
+  - text: Performance parameters are within range. Well within range. Above what
+      protocol considers expected for a subject at this stage.
+    register: 1
+  - text: I should log this as one more result and move on to the next report. That's
+      what I'm asked to do.
+    register: 1
+  - text: Instead, I'm going to ask you something that isn't in my script, Subject
+      E-0. Do you know what you are?
+    register: 1
+  - text: "\u2026Go on. They're waiting for you for the mission."
+    register: 1
