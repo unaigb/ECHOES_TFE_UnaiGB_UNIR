@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using Echoes.Audio;
 
 namespace Echoes.Interactables
 {
@@ -13,6 +14,12 @@ namespace Echoes.Interactables
         [Header("Visual")]
         [SerializeField] private float pressedScaleY = 0.7f;
         [SerializeField] private float visualTransitionTime = 0.08f;
+
+        [Header("Sonido")]
+        [SerializeField] private AudioClip pressSfx;
+        [Range(0f, 5f)] [SerializeField] private float pressSfxVolume = 1f;
+        [SerializeField] private AudioClip releaseSfx;
+        [Range(0f, 5f)] [SerializeField] private float releaseSfxVolume = 1f;
 
         private int _activatorCount = 0;
         private Vector3 _originalScale;
@@ -42,6 +49,7 @@ namespace Echoes.Interactables
             {
                 foreach (var door in targetDoors) door?.Open();
                 SetPressedVisual(true);
+                AudioManager.Instance?.PlaySfxAt(pressSfx, transform.position, pressSfxVolume);
             }
         }
 
@@ -54,6 +62,7 @@ namespace Echoes.Interactables
                 _activatorCount = 0;
                 foreach (var door in targetDoors) door?.Close();
                 SetPressedVisual(false);
+                AudioManager.Instance?.PlaySfxAt(releaseSfx, transform.position, releaseSfxVolume);
             }
         }
 
@@ -78,5 +87,9 @@ namespace Echoes.Interactables
             }
             transform.localScale = target;
         }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected() => AudioManager.DrawProximityGizmo(transform.position);
+#endif
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Echoes.Audio;
 
 namespace Echoes.Interactables
 {
@@ -15,6 +16,12 @@ namespace Echoes.Interactables
         [SerializeField] private Sprite spriteClosedSecond;
         [SerializeField] private Sprite spriteOpenSecond;
 
+        [Header("Sonido")]
+        [SerializeField] private AudioClip openSfx;
+        [Range(0f, 5f)] [SerializeField] private float openSfxVolume = 1f;
+        [SerializeField] private AudioClip closeSfx;
+        [Range(0f, 5f)] [SerializeField] private float closeSfxVolume = 1f;
+
         private bool _isOpen;
         private Collider2D _collider;
         private SpriteRenderer _renderer;
@@ -23,17 +30,29 @@ namespace Echoes.Interactables
         {
             _collider = GetComponent<Collider2D>();
             _renderer = GetComponent<SpriteRenderer>();
-            SetState(startOpen);
+            SetState(startOpen, playSound: false);
         }
 
-        public void Open() => SetState(true);
-        public void Close() => SetState(false);
-        public void Toggle() => SetState(!_isOpen);
+        public void Open() => SetState(true, playSound: true);
+        public void Close() => SetState(false, playSound: true);
+        public void Toggle() => SetState(!_isOpen, playSound: true);
 
-        private void SetState(bool open)
+        // Para cuando otro script decide, al cargar, que el startOpen serializado no aplica de
+        // verdad (p. ej. AutoCloseDoor, si el jugador ya reapareció al otro lado) — sin sonido,
+        // igual que el propio Awake().
+        public void SetInitialState(bool open) => SetState(open, playSound: false);
+
+        private void SetState(bool open, bool playSound)
         {
+            bool changed = _isOpen != open;
             _isOpen = open;
             _collider.enabled = !open;
+
+            if (playSound && changed)
+            {
+                if (open) AudioManager.Instance?.PlaySfxAt(openSfx, transform.position, openSfxVolume);
+                else AudioManager.Instance?.PlaySfxAt(closeSfx, transform.position, closeSfxVolume);
+            }
 
             if (_renderer != null)
             {
@@ -51,5 +70,9 @@ namespace Echoes.Interactables
                     secondRenderer.sprite = targetSecond;
             }
         }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected() => AudioManager.DrawProximityGizmo(transform.position);
+#endif
     }
 }

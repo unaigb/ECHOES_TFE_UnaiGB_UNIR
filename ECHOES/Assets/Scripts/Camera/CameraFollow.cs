@@ -76,6 +76,19 @@ namespace Echoes.Camera
             _targetSize = size;
         }
 
+        // Para reanudar una partida sin pasar por la cinemática (Continue, reinicio por
+        // detección, salto de sala de depuración): coloca la cámara YA en su posición y tamaño
+        // objetivo, sin el Lerp normal — si no, se ve un barrido desde donde estuviera la cámara
+        // al cargar la escena hasta el jugador, y el zoom (p.ej. el de la Sala 04) tarda un rato
+        // en alcanzar su tamaño en vez de aparecer ya aplicado.
+        // 'position' se pasa explícito (no se lee de 'target') para evitar depender de que el
+        // Transform del jugador ya refleje una teletransportación hecha el mismo frame.
+        public void SnapToCurrentState(Vector3 position)
+        {
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+            _cam.orthographicSize = _targetSize;
+        }
+
         public void ClearLimits()
         {
             _minX = float.MinValue; _maxX = float.MaxValue;
@@ -97,8 +110,15 @@ namespace Echoes.Camera
         {
             float halfH = _cam.orthographicSize;
             float halfW = _cam.orthographicSize * _cam.aspect;
-            float x = Mathf.Clamp(pos.x, _minX + halfW, _maxX - halfW);
-            float y = Mathf.Clamp(pos.y, _minY + halfH, _maxY - halfH);
+
+            // Si la sala es más pequeña que la vista de la cámara en algún eje (zoom grande +
+            // spawn pegado a un límite, p. ej. el bound sur de la Sala 03), min queda por
+            // encima de max y Mathf.Clamp con el rango invertido da un resultado errático según
+            // de qué lado caiga pos — se centra en ese eje en vez de dejar que "colapse".
+            float minX = _minX + halfW, maxX = _maxX - halfW;
+            float minY = _minY + halfH, maxY = _maxY - halfH;
+            float x = minX <= maxX ? Mathf.Clamp(pos.x, minX, maxX) : (_minX + _maxX) * 0.5f;
+            float y = minY <= maxY ? Mathf.Clamp(pos.y, minY, maxY) : (_minY + _maxY) * 0.5f;
             return new Vector3(x, y, pos.z);
         }
     }

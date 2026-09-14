@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Echoes.Echo;
+using Echoes.Player;
 
 namespace Echoes.Camera
 {
@@ -8,6 +9,8 @@ namespace Echoes.Camera
     {
         [SerializeField] private CameraFollow cameraFollow;
         [SerializeField] private EchoRecorder echoRecorder;
+        [Tooltip("Para no entrar en modo espectador mientras el input del jugador está bloqueado (diálogos, cinemáticas).")]
+        [SerializeField] private PlayerInputHandler playerInput;
 
         private InputAction _spectateAction;
 
@@ -30,6 +33,7 @@ namespace Echoes.Camera
 
         private void OnSpectateStart(InputAction.CallbackContext ctx)
         {
+            if (playerInput != null && !playerInput.InputEnabled) return;
             if (echoRecorder.State != EchoState.Playing) return;
             cameraFollow.SetSpectateTarget(echoRecorder.ActiveEchoTransform);
         }

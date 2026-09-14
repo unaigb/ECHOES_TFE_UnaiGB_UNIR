@@ -26,3 +26,6 @@ MonoBehaviour:
     register: 1
   - text: It's an option the exercise design accounts for. It is not a recommendation.
     register: 1
+  - text: 'Try to get detected to understand how the cameras work... Or just go ahead
+      and complete the room. '
+    register: 1

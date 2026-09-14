@@ -18,6 +18,8 @@ namespace Echoes.Enemies
         [SerializeField] private LayerMask playerLayer;
         [SerializeField] private LayerMask obstacleLayer;
         [SerializeField] private float alertDuration = 0.5f;
+        [Tooltip("Con este exponente, la duración de alerta ya no es fija: depende de la distancia a la que estés de la cámara. Cerca del propio origen del cono, la misma anchura angular equivale a un arco muchísimo más corto (a igual velocidad, se cruza en mucho menos tiempo) — con una duración fija, eso permitía colarse pegado a la cámara sin llegar nunca a los 0,5s de alerta. Ahora la duración va de ~0 en el origen hasta Alert Duration en el borde (Cone Range), con esta curva (2 = cuadrática): se mantiene baja casi todo el rango y solo sube fuerte cerca del final.")]
+        [SerializeField] private float alertDistanceCurveExponent = 2f;
 
         public CameraState State { get; private set; } = CameraState.Patrolling;
         public float ConeAngle => coneAngle;
@@ -30,7 +32,8 @@ namespace Echoes.Enemies
         private float _baseAngle;
         private float _currentAngle;
         private float _rotationDirection = 1f;
-        private float _alertTimer;
+        private float _alertProgress; // 0-1, en vez de una cuenta atrás fija — ver UpdateAlert
+        private float _lastPlayerDistance;
         private VisionCone _visionCone;
 
         private void Awake()
@@ -69,14 +72,15 @@ namespace Echoes.Enemies
         {
             if (State == CameraState.Detected) return;
 
-            bool playerInCone = IsPlayerInCone();
+            bool playerInCone = TryGetPlayerInCone(out float distance);
 
             if (playerInCone)
             {
+                _lastPlayerDistance = distance;
                 if (State == CameraState.Patrolling)
                 {
                     SetState(CameraState.Alert);
-                    _alertTimer = alertDuration;
+                    _alertProgress = 0f;
                 }
             }
             else
@@ -86,17 +90,28 @@ namespace Echoes.Enemies
             }
         }
 
+        // Acumula progreso (0-1) en vez de restar de una cuenta atrás fija: así la "velocidad"
+        // de detección puede depender de la distancia del frame actual (RequiredAlertDuration),
+        // que se recalcula constantemente si el jugador se mueve dentro del cono.
         private void UpdateAlert()
         {
             if (State != CameraState.Alert) return;
 
-            _alertTimer -= Time.deltaTime;
-            if (_alertTimer <= 0f)
+            float required = RequiredAlertDuration(_lastPlayerDistance);
+            _alertProgress += required > 0.0001f ? Time.deltaTime / required : 1f;
+            if (_alertProgress >= 1f)
                 SetState(CameraState.Detected);
         }
 
-        private bool IsPlayerInCone()
+        private float RequiredAlertDuration(float distance)
         {
+            float t = coneRange > 0f ? Mathf.Clamp01(distance / coneRange) : 1f;
+            return alertDuration * Mathf.Pow(t, alertDistanceCurveExponent);
+        }
+
+        private bool TryGetPlayerInCone(out float distance)
+        {
+            distance = 0f;
             Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, coneRange, playerLayer);
 
             foreach (var hit in hits)
@@ -108,11 +123,14 @@ namespace Echoes.Enemies
 
                 if (angle > coneAngle * 0.5f) continue;
 
-                float distance = Vector2.Distance(transform.position, hit.transform.position);
-                RaycastHit2D ray = Physics2D.Raycast(transform.position, dirToTarget, distance, obstacleLayer);
+                float d = Vector2.Distance(transform.position, hit.transform.position);
+                RaycastHit2D ray = Physics2D.Raycast(transform.position, dirToTarget, d, obstacleLayer);
 
                 if (ray.collider == null)
+                {
+                    distance = d;
                     return true;
+                }
             }
 
             return false;

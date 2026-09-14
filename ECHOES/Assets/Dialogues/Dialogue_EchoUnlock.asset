@@ -16,8 +16,8 @@ MonoBehaviour:
   lines:
   - text: 'Temporal recording device: online.'
     register: 0
-  - text: Hold {Record} to log your movements for fifteen seconds. Release it and
-      you snap back to your starting position.
+  - text: Press {Record} to log your movements for fifteen seconds. Press it again
+      and you snap back to your starting position.
     register: 0
   - text: Press {DeployEcho} and an echo of you replays that recording while you
       act in parallel. Get it wrong and {Rewind} wipes the log.

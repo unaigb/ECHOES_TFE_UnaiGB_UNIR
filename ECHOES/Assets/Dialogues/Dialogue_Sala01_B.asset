@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Echoes.Dialogue.DialogueSequence
   speakerName: Ir1s
   lines:
-  - text: In this Hall there's a pressure plate. It needs constant weight on it.
+  - text: In this room there's a pressure plate. It needs constant weight on it.
       You have a box for that. Proceed when ready.
     register: 0

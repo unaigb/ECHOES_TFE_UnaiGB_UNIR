@@ -25,6 +25,12 @@ namespace Echoes.UI
             yield return Slide(barHeight, 0f);
         }
 
+        // Para cuando se salta la cinemática por completo (Continue, reinicio por detección,
+        // salto de sala de depuración): Awake() siempre despliega las barras a la espera de que
+        // la cinemática las retire al terminar — si esta no se reproduce, hay que retirarlas
+        // igual, pero de golpe, sin la animación.
+        public void HideImmediate() => SetHeights(0f);
+
         private IEnumerator Slide(float from, float to)
         {
             float t = 0f;

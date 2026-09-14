@@ -16,8 +16,9 @@ MonoBehaviour:
   lines:
   - text: "Final test\u2026 complete."
     register: 1
-  - text: Performance parameters are within range. Well within range. Above what
-      protocol considers expected for a subject at this stage.
+  - text: Performance parameters are within range. Well within range...
+    register: 1
+  - text: ...Above what protocol considers expected for a subject at this stage.
     register: 1
   - text: I should log this as one more result and move on to the next report. That's
       what I'm asked to do.

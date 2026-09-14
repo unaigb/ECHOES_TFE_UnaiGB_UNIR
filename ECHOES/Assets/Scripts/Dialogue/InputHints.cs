@@ -40,16 +40,22 @@ namespace Echoes.Dialogue
             else if (device is Keyboard || device is Mouse) UsingGamepad = false;
         }
 
-        public static string Key(string actionName)
+        // useOverrides = false para listados tipo "Controls" de Opciones, donde interesa el
+        // nombre real del dispositivo ("Left Stick") y no la frase de prosa para diálogos
+        // ("the left stick" queda raro fuera de una frase).
+        public static string Key(string actionName, bool useOverrides = true)
         {
             InputAction action = InputSystem.actions != null ? InputSystem.actions.FindAction(actionName) : null;
             if (action == null) return $"[{actionName}]";
 
-            // Nombre corto de la acción para buscar en Overrides ("Player/Move" -> "Move").
-            int slash = actionName.LastIndexOf('/');
-            string shortName = slash >= 0 ? actionName.Substring(slash + 1) : actionName;
-            string overrideKey = shortName + (UsingGamepad ? ":gamepad" : ":keyboard");
-            if (Overrides.TryGetValue(overrideKey, out string phrase)) return phrase;
+            if (useOverrides)
+            {
+                // Nombre corto de la acción para buscar en Overrides ("Player/Move" -> "Move").
+                int slash = actionName.LastIndexOf('/');
+                string shortName = slash >= 0 ? actionName.Substring(slash + 1) : actionName;
+                string overrideKey = shortName + (UsingGamepad ? ":gamepad" : ":keyboard");
+                if (Overrides.TryGetValue(overrideKey, out string phrase)) return phrase;
+            }
 
             return DisplayFor(action, UsingGamepad);
         }

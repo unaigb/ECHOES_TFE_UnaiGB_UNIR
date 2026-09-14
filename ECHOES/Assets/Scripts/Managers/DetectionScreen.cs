@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System;
+using Echoes.Audio;
 
 namespace Echoes.Managers
 {
@@ -10,6 +11,11 @@ namespace Echoes.Managers
     {
         [SerializeField] private Image overlay;
         [SerializeField] private TextMeshProUGUI detectionText;
+        [SerializeField] private AudioClip detectedSfx;
+        [Range(0f, 5f)] [SerializeField] private float detectedSfxVolume = 1f;
+        [Tooltip("Pequeña espera antes de que suene el golpe de sonido de detección — un poco de suspense entre que la cámara te pilla y el impacto.")]
+        [SerializeField] private float detectedSfxDelay = 0.2f;
+        [SerializeField] private float musicCutFadeTime = 0.2f;
 
         private static readonly Color RedFlash = new Color(0.8f, 0f, 0f, 0.6f);
         private static readonly Color BlackOverlay = new Color(0f, 0f, 0f, 0.95f);
@@ -30,6 +36,10 @@ namespace Echoes.Managers
 
         private IEnumerator DetectionSequence(Action onComplete)
         {
+            // En paralelo: el golpe de sonido llega con un pelín de retraso, y justo cuando
+            // suena es cuando se corta la música — no antes, no en otro momento.
+            StartCoroutine(PlayDetectedAudio());
+
             // Flash rojo
             overlay.color = RedFlash;
             yield return new WaitForSeconds(0.15f);
@@ -72,6 +82,13 @@ namespace Echoes.Managers
             }
 
             onComplete?.Invoke();
+        }
+
+        private IEnumerator PlayDetectedAudio()
+        {
+            yield return new WaitForSeconds(detectedSfxDelay);
+            AudioManager.Instance?.PlaySfx(detectedSfx, detectedSfxVolume);
+            AudioManager.Instance?.StopMusic(musicCutFadeTime);
         }
     }
 }
