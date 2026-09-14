@@ -108,7 +108,11 @@ namespace Echoes.Managers
 
             // Sin cinemática, nadie llama a startDoor.Close() — se queda con el estado por
             // defecto de la escena (abierta), dejando salir al vacío detrás del punto de inicio.
-            if (startDoor != null) startDoor.Close();
+            // SetInitialState(), no Close(): esto es una restauración silenciosa a un estado ya
+            // sabido (la puerta lleva cerrada desde la cinemática original), no un cierre en vivo
+            // delante del jugador — con Close() sonaba en cada Continue/Restart Room, incluso a
+            // varias salas de distancia (se oía igual en Hall 01-A/B por el sonido posicional).
+            if (startDoor != null) startDoor.SetInitialState(false);
         }
 
         private void Reveal()

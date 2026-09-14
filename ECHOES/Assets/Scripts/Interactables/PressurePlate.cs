@@ -20,10 +20,13 @@ namespace Echoes.Interactables
         [Range(0f, 5f)] [SerializeField] private float pressSfxVolume = 1f;
         [SerializeField] private AudioClip releaseSfx;
         [Range(0f, 5f)] [SerializeField] private float releaseSfxVolume = 1f;
+        [Tooltip("Pequeño margen antes de soltar la placa de verdad — absorbe el tembleque físico cuando la caja queda justo al borde del trigger y entra/sale del collider varias veces por frame de física.")]
+        [SerializeField] private float releaseGrace = 0.15f;
 
         private int _activatorCount = 0;
         private Vector3 _originalScale;
         private Coroutine _visualRoutine;
+        private Coroutine _releaseRoutine;
 
         private void Awake()
         {
@@ -44,7 +47,12 @@ namespace Echoes.Interactables
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (!IsValidActivator(other)) return;
+
             _activatorCount++;
+            // Cancela una suelta pendiente: si esto es el mismo objeto rebotando en el borde del
+            // trigger, la placa nunca llega a soltarse de verdad.
+            if (_releaseRoutine != null) { StopCoroutine(_releaseRoutine); _releaseRoutine = null; }
+
             if (_activatorCount == 1)
             {
                 foreach (var door in targetDoors) door?.Open();
@@ -56,14 +64,27 @@ namespace Echoes.Interactables
         private void OnTriggerExit2D(Collider2D other)
         {
             if (!IsValidActivator(other)) return;
+
             _activatorCount--;
             if (_activatorCount <= 0)
             {
                 _activatorCount = 0;
-                foreach (var door in targetDoors) door?.Close();
-                SetPressedVisual(false);
-                AudioManager.Instance?.PlaySfxAt(releaseSfx, transform.position, releaseSfxVolume);
+                if (_releaseRoutine == null)
+                    _releaseRoutine = StartCoroutine(ReleaseAfterGrace());
             }
+        }
+
+        // Espera un momento antes de soltar de verdad — si algo vuelve a entrar mientras tanto
+        // (el mismo tembleque físico que causó la salida), OnTriggerEnter2D ya habrá cancelado
+        // esta corrutina, así que ni siquiera llega a comprobar nada.
+        private IEnumerator ReleaseAfterGrace()
+        {
+            yield return new WaitForSeconds(releaseGrace);
+            _releaseRoutine = null;
+
+            foreach (var door in targetDoors) door?.Close();
+            SetPressedVisual(false);
+            AudioManager.Instance?.PlaySfxAt(releaseSfx, transform.position, releaseSfxVolume);
         }
 
         private void SetPressedVisual(bool pressed)

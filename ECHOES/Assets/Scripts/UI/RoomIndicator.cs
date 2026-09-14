@@ -8,7 +8,11 @@ namespace Echoes.UI
     {
         [SerializeField] private TextMeshProUGUI label;
 
-        private void Start()
+        // OnEnable, no Start: este objeto cuelga de LocationBox, que PauseMenu apaga/enciende
+        // con SetActive() en cada pausa — Start() solo corre una vez en toda la vida del objeto,
+        // así que tras la primera pausa se quedaba desuscrito para siempre (el rótulo se
+        // congelaba con el nombre de la última sala vista antes de esa pausa).
+        private void OnEnable()
         {
             if (LevelManager.Instance == null) return;
             LevelManager.Instance.OnRoomChanged += SetRoomName;
