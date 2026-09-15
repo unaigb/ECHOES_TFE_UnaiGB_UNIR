@@ -32,12 +32,22 @@ namespace Echoes.Menus
         [SerializeField] private Sprite activeTabSprite;
         [SerializeField] private Sprite inactiveTabSprite;
 
+        // Objetivo por defecto de la pestaña activa — para poder recuperar la selección si se
+        // pierde (ver Update), sin tener que recordar aparte en qué pestaña estamos.
+        private GameObject _currentFirstSelected;
+
         // Pon este componente en el mismo GameObject que OptionsMenu: así, cada vez que
         // OptionsMenu.Show() reactive el panel, se vuelve a abrir siempre en "General".
         private void OnEnable() => ShowGeneral();
 
         private void Update()
         {
+            // Un clic en un hueco vacío de Opciones (fuera de sliders/toggle/botones) deselecciona
+            // el EventSystem — igual que en el menú principal, sin nada seleccionado ni el teclado
+            // ni el mando pueden navegar. Se restaura el primer control de la pestaña activa.
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == null)
+                Select(_currentFirstSelected);
+
             Gamepad gp = Gamepad.current;
             if (gp == null) return;
             if (gp.leftShoulder.wasPressedThisFrame) ShowGeneral();
@@ -52,6 +62,7 @@ namespace Echoes.Menus
             if (controlsTabButton != null) controlsTabButton.interactable = true;
             if (generalTabImage != null) generalTabImage.sprite = activeTabSprite;
             if (controlsTabImage != null) controlsTabImage.sprite = inactiveTabSprite;
+            _currentFirstSelected = generalFirstSelected;
             Select(generalFirstSelected);
         }
 
@@ -63,6 +74,7 @@ namespace Echoes.Menus
             if (controlsTabButton != null) controlsTabButton.interactable = false;
             if (generalTabImage != null) generalTabImage.sprite = inactiveTabSprite;
             if (controlsTabImage != null) controlsTabImage.sprite = activeTabSprite;
+            _currentFirstSelected = controlsFirstSelected;
             Select(controlsFirstSelected);
         }
 

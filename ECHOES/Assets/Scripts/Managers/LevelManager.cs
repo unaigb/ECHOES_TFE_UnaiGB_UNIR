@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using Echoes.Camera;
 using Echoes.Interactables;
 using Echoes.Saving;
+using Echoes.Player;
 
 namespace Echoes.Managers
 {
@@ -13,6 +14,10 @@ namespace Echoes.Managers
 
         public event Action<string> OnRoomChanged;
         public string CurrentRoomName { get; private set; }
+        // Última tanda de RoomBoundary aplicada — para que EchoRecorder pueda guardar "en qué
+        // sala estaba la cámara" al empezar a grabar y restaurarlo tal cual al terminar, sin
+        // depender de un cruce físico por un trigger (ver ReapplyExits más abajo).
+        public RoomBoundary[] CurrentExits { get; private set; }
         // Cierto cuando Awake ha usado el salto de sala de depuración (debugStartPosition).
         // GameEntryPoint lo usa para no reproducir la cinemática de entrada por encima.
         public bool IsDebugJump { get; private set; }
@@ -22,6 +27,12 @@ namespace Echoes.Managers
         [Tooltip("Segundos tras cargar la sala en los que se ignora una detección. Sin esto, si el punto de reaparición cae dentro del cono de una cámara (p. ej. Sala 03), esta te detecta de nuevo a los pocos frames de recargar, dispara otro reinicio, y así sin parar — un bucle de recargas de escena que no lanza ninguna excepción, así que no se ve nada en la consola, pero bloquea el Editor por completo.")]
         [SerializeField] private float detectionGraceTime = 1.5f;
         private float _detectionGraceUntil;
+        // Si dos conos de cámara detectan al jugador el mismo frame (o casi), sin esto ambos
+        // llaman a TriggerDetection() — dos DetectionSequence corriendo a la vez sobre el mismo
+        // DetectionScreen (doble flash, doble sonido) y dos RestartLevel() seguidos. Se resetea
+        // solo al recargar la escena, como el resto del estado de LevelManager.
+        private bool _detectionTriggered;
+        private PlayerInputHandler _playerInput;
 
         [Header("Room Transitions")]
         [SerializeField] private CameraFollow cameraFollow;
@@ -53,6 +64,9 @@ namespace Echoes.Managers
             }
             Instance = this;
             _detectionGraceUntil = Time.time + detectionGraceTime;
+            _playerInput = playerRigidbody != null ? playerRigidbody.GetComponent<PlayerInputHandler>() : null;
+            // Se retira en GameEntryPoint.Reveal() — ver comentario en GameFlow.SilentSetup.
+            GameFlow.SilentSetup = true;
 
 #if UNITY_EDITOR
             // Sin el "&& !GameFlow.ContinueRequested", una recarga real de Continue/detección
@@ -73,6 +87,12 @@ namespace Echoes.Managers
         public void TriggerDetection()
         {
             if (Time.time < _detectionGraceUntil) return;
+            if (_detectionTriggered) return;
+            _detectionTriggered = true;
+
+            // El jugador queda "congelado" en cuanto se dispara la detección — antes se podía
+            // seguir moviendo durante todo el flash/fundido de DetectionScreen.
+            if (_playerInput != null) _playerInput.InputEnabled = false;
 
             if (detectionScreen != null)
                 detectionScreen.Show(RestartLevel);
@@ -125,9 +145,18 @@ namespace Echoes.Managers
             ApplyExitBarriers(nextRoomExits);
         }
 
+        // Vuelve a aplicar una tanda de salidas ya conocida, sin pasar por ningún cruce físico.
+        // Caso de uso: el jugador cruza "hacia atrás" a la sala anterior mientras graba un eco
+        // (la puerta se lo permite a propósito, ver RoomBoundary.previousRoomExits), y al parar
+        // la grabación EchoRecorder lo teletransporta de vuelta a donde empezó a grabar — ese
+        // teletransporte no dispara ningún trigger, así que sin esto la cámara se quedaba con
+        // los límites de la sala "de atrás" aunque el jugador ya estuviera de vuelta.
+        public void ReapplyExits(RoomBoundary[] exits) => ApplyExitBarriers(exits);
+
         private void ApplyExitBarriers(RoomBoundary[] exits)
         {
             if (exits == null) return;
+            CurrentExits = exits;
 
             // Recalculado desde cero en cada llamada, no acumulado: si no, una sala con zoom-out
             // (p.ej. Sala 03) deja la cámara alejada para siempre en todas las salas siguientes,
@@ -144,7 +173,11 @@ namespace Echoes.Managers
             }
             cameraFollow.SetZoomedOut(zoomOut);
 
-            if (roomName != null)
+            // Solo avisa de verdad si la sala cambia. ReapplyExits() (fix del eco cruzando de
+            // vuelta a una sala anterior) puede reaplicar la MISMA sala en la que ya estábamos —
+            // sin este chequeo, el evento se disparaba igualmente para la sala de la que ya
+            // veníamos, cosa redundante en el mejor caso.
+            if (roomName != null && roomName != CurrentRoomName)
             {
                 CurrentRoomName = roomName;
                 OnRoomChanged?.Invoke(roomName);

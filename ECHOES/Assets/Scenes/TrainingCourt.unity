@@ -585,6 +585,10 @@ PrefabInstance:
       propertyPath: targetDoor
       value: 
       objectReference: {fileID: 143960385}
+    - target: {fileID: 5848631061594422249, guid: 1c0d06ad964086a4da84b68b39ddb172, type: 3}
+      propertyPath: openDuration
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1781,7 +1785,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8546581893036229862, guid: 9539098c02aaf3e499633eaa84cd3bc6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.531
+      value: -2.88
       objectReference: {fileID: 0}
     - target: {fileID: 8546581893036229862, guid: 9539098c02aaf3e499633eaa84cd3bc6, type: 3}
       propertyPath: m_LocalPosition.z
@@ -64965,7 +64969,7 @@ MonoBehaviour:
   timerLabelFormat: Completed in {0}
   fadeToBlackTime: 1
   textFadeTime: 1
-  returnToTitleDelay: 10
+  returnToTitleDelay: 5
   titleSceneName: Title
 --- !u!4 &1194939533 stripped
 Transform:
@@ -70721,63 +70725,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!1001 &2027245117
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -1.8957978
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.35417354
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4793642654135507498, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8125215418016083840, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
-      propertyPath: m_Name
-      value: BigMovableBox
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: f4bc6bd4d900c6642a4de58f8a7b73d7, type: 3}
 --- !u!114 &2045205416 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9158473409793328891, guid: 9539098c02aaf3e499633eaa84cd3bc6, type: 3}
@@ -71610,4 +71557,3 @@ SceneRoots:
   - {fileID: 1318748614}
   - {fileID: 1417925926397836461}
   - {fileID: 1676435636}
-  - {fileID: 2027245117}

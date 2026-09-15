@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Echoes.Audio;
+using Echoes.Interactables;
+using Echoes.Managers;
 
 namespace Echoes.Echo
 {
@@ -37,6 +39,8 @@ namespace Echoes.Echo
         private InputAction _deployAction;
         private InputAction _rewindAction;
         private GameObject _activeEcho;
+        // Límites de cámara vigentes al empezar a grabar — ver StopRecording().
+        private RoomBoundary[] _roomExitsAtRecordStart;
 
         private void Awake()
         {
@@ -152,6 +156,7 @@ namespace Echoes.Echo
             _data.startPosition = transform.position;
             _recordingTimer = 0f;
             State = EchoState.Recording;
+            _roomExitsAtRecordStart = LevelManager.Instance?.CurrentExits;
             AudioManager.Instance?.PlaySfx(recordStartSfx, recordStartSfxVolume);
             Debug.Log("[Echo] Grabación iniciada.");
         }
@@ -160,6 +165,12 @@ namespace Echoes.Echo
         {
             transform.position = _data.startPosition;
             _rb.linearVelocity = Vector2.zero;
+            // Si durante la grabación el jugador cruzó de vuelta a la sala anterior (posible en
+            // puertas con Previous Room Exits), este teletransporte a la posición de inicio no
+            // pasa por ningún RoomBoundary — sin esto, la cámara se quedaría con los límites de
+            // la sala de la que se volvió, aunque el jugador ya esté de vuelta en la de antes.
+            if (_roomExitsAtRecordStart != null)
+                LevelManager.Instance?.ReapplyExits(_roomExitsAtRecordStart);
             AudioManager.Instance?.PlaySfx(recordStopSfx, recordStopSfxVolume);
             State = EchoState.Recorded;
             Debug.Log($"[Echo] Grabación guardada. Frames: {_data.frames.Count} | Duración: {_recordingTimer:F2}s");

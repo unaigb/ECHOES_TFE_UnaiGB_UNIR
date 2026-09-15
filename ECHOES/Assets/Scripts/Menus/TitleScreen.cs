@@ -38,6 +38,9 @@ namespace Echoes.Menus
             // Escena de Título recién cargada: cualquier "nos vamos" de la partida anterior ya
             // se ha cumplido.
             GameFlow.LeavingScene = false;
+            // El Título es un menú de principio a fin — el cursor debe verse siempre, aunque se
+            // llegue aquí justo después de una partida (donde se oculta durante el juego).
+            Cursor.visible = true;
 
             _submitAction = InputSystem.actions.FindAction("UI/Submit");
             _cancelAction = InputSystem.actions.FindAction("UI/Cancel");
@@ -46,7 +49,11 @@ namespace Echoes.Menus
             // Nace en negro: si se llega aquí tras un fundido desde la partida (Main Menu), no
             // hay corte; si es el primer arranque de la app, es simplemente un fundido de
             // entrada. Se retira solo en Start() (ver RevealFromBlack).
-            if (fadeOverlay != null) fadeOverlay.alpha = 1f;
+            if (fadeOverlay != null)
+            {
+                fadeOverlay.alpha = 1f;
+                fadeOverlay.blocksRaycasts = true;
+            }
         }
 
         private void Start()
@@ -70,6 +77,12 @@ namespace Echoes.Menus
                 yield return null;
             }
             fadeOverlay.alpha = 0f;
+            // El CanvasGroup del overlay cubre TODA la pantalla (está por encima de MenuPanel):
+            // bajar el alpha a 0 no desactiva por sí solo el bloqueo de raycasts, así que sin
+            // esto se queda invisible pero tapando todo el ratón —clics y hover— del menú
+            // durante el resto de la escena de Título, aunque el teclado/mando funcionen bien al
+            // no depender de raycasts.
+            fadeOverlay.blocksRaycasts = false;
         }
 
         private void Update()
@@ -80,12 +93,24 @@ namespace Echoes.Menus
                 return;
             }
 
-            // Desde el menú, "atrás" vuelve al splash — igual que un submenú se cierra hacia el
-            // que lo abrió. No interfiere con Opciones: mientras esa está abierta, menuPanel ya
-            // está desactivado (OptionsMenu.Show lo apaga como callerPanel), así que este bloque
-            // ni se plantea correr.
-            if (menuPanel != null && menuPanel.activeSelf && CancelPressed())
-                HideMenu();
+            if (menuPanel != null && menuPanel.activeSelf)
+            {
+                // Un clic en cualquier hueco vacío del menú (fuera de los botones) deselecciona
+                // el EventSystem por defecto de Unity — sin nada seleccionado, ni el teclado ni
+                // el mando pueden navegar (las flechas mueven la selección A PARTIR de la actual,
+                // que ya no existe), y antes solo se arreglaba saliendo al splash y reabriendo el
+                // menú. Se restaura solo el mismo objetivo por defecto de ShowMenu(), cada frame
+                // que haga falta.
+                if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == null)
+                    SelectDefaultButton();
+
+                // Desde el menú, "atrás" vuelve al splash — igual que un submenú se cierra hacia
+                // el que lo abrió. No interfiere con Opciones: mientras esa está abierta,
+                // menuPanel ya está desactivado (OptionsMenu.Show lo apaga como callerPanel), así
+                // que este bloque ni se plantea correr.
+                if (CancelPressed())
+                    HideMenu();
+            }
         }
 
         private bool AnyInputPressed()
@@ -107,21 +132,28 @@ namespace Echoes.Menus
             splashPanel.SetActive(false);
             if (menuPanel != null) menuPanel.SetActive(true);
 
-            // Prioriza Continue si hay partida guardada — más cómodo que tener que navegar hasta
-            // él cada vez. Sin partida, cae en New Game (firstSelectedButton) como antes.
-            GameObject target = (continueButton != null && continueButton.gameObject.activeSelf)
-                ? continueButton.gameObject
-                : firstSelectedButton;
-
             // Sin esto, un mando/teclado no puede navegar el menú hasta hacer clic una vez.
-            if (target != null && EventSystem.current != null)
+            if (EventSystem.current != null)
             {
                 EventSystem.current.SetSelectedGameObject(null);
-                EventSystem.current.SetSelectedGameObject(target);
+                SelectDefaultButton();
             }
         }
 
-        private void HideMenu()
+        // Prioriza Continue si hay partida guardada — más cómodo que tener que navegar hasta él
+        // cada vez. Sin partida, cae en New Game (firstSelectedButton).
+        private void SelectDefaultButton()
+        {
+            GameObject target = (continueButton != null && continueButton.gameObject.activeSelf)
+                ? continueButton.gameObject
+                : firstSelectedButton;
+            if (target != null && EventSystem.current != null)
+                EventSystem.current.SetSelectedGameObject(target);
+        }
+
+        // Público para poder colgarlo también del OnClick de un botón "Atrás" en pantalla,
+        // además del propio Cancel/Esc que ya lo llama desde Update().
+        public void HideMenu()
         {
             menuPanel.SetActive(false);
             if (splashPanel != null) splashPanel.SetActive(true);
@@ -131,6 +163,10 @@ namespace Echoes.Menus
         public void OnNewGame()
         {
             if (_loading) return;
+            // Vertical Slice con un único slot de guardado: "New Game" de verdad tiene que
+            // empezar de cero, no dejar la partida de Continue a medias por debajo. Sin aviso de
+            // confirmación ni slots múltiples a propósito — fuera del alcance de esta demo.
+            SaveSystem.DeleteSave();
             GameFlow.ResetSession();
             GameFlow.ContinueRequested = false;
             StartTransition();
@@ -158,6 +194,7 @@ namespace Echoes.Menus
         {
             if (fadeOverlay != null)
             {
+                fadeOverlay.blocksRaycasts = true;
                 float t = 0f;
                 while (t < fadeToBlackTime)
                 {

@@ -43,6 +43,8 @@ namespace Echoes.Managers
             // Escena nueva de verdad empezando — cualquier "nos vamos" de la anterior ya se
             // cumplió, así que a partir de aquí el audio vuelve a sonar con normalidad.
             GameFlow.LeavingScene = false;
+            // Oculto durante la partida — PauseMenu lo vuelve a mostrar mientras está abierto.
+            Cursor.visible = false;
 
             _isDebugJump = LevelManager.Instance != null && LevelManager.Instance.IsDebugJump;
             _isContinue = GameFlow.ContinueRequested;
@@ -117,6 +119,10 @@ namespace Echoes.Managers
 
         private void Reveal()
         {
+            // A partir de aquí el mundo ya es visible — seguro para que un diálogo en cola
+            // (p. ej. uno de OnRoomEntered disparado durante PrepareContinueState, mientras el
+            // aviso de autoguardado seguía tapando la pantalla) arranque de verdad.
+            GameFlow.SilentSetup = false;
             AudioManager.Instance?.BeginRoomMusic();
 
             if (_isContinue || _isDebugJump)

@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using Echoes.Managers;
+using Echoes.Saving;
 
 namespace Echoes.Dialogue
 {
@@ -20,6 +21,7 @@ namespace Echoes.Dialogue
         [SerializeField] private bool playOnce = true;
 
         private bool _fired;
+        private bool _pendingReveal;
 
         private void Awake()
         {
@@ -56,12 +58,39 @@ namespace Echoes.Dialogue
 
         public void Fire()
         {
-            if (playOnce && _fired) return;
+            // _fired cubre re-entradas rápidas dentro de la misma vida de este objeto;
+            // GameFlow.HasPlayed cubre que la escena se haya recargado de por medio (Restart
+            // Room, detección, Continue) — sin esto, "solo una vez" duraba solo hasta el
+            // siguiente reinicio de sala, no la sesión entera.
+            if (playOnce && (_fired || GameFlow.HasPlayed(sequence))) return;
             if (sequence == null || DialogueManager.Instance == null) return;
+
+            // Un OnRoomEntered puede dispararse mientras el aviso de autoguardado todavía tapa
+            // la pantalla (p. ej. al hacer Continue) — arrancar el diálogo ahí lo deja jugando
+            // por debajo del aviso, invisible, y el jugador se queda bloqueado sin saber que hay
+            // que avanzarlo a ciegas. Se espera a que el mundo sea visible de verdad.
+            if (GameFlow.SilentSetup)
+            {
+                if (!_pendingReveal)
+                {
+                    _pendingReveal = true;
+                    StartCoroutine(FireWhenRevealed());
+                }
+                return;
+            }
+
             _fired = true;
+            if (playOnce) GameFlow.MarkPlayed(sequence);
 
             if (delay > 0f) StartCoroutine(FireDelayed());
             else DialogueManager.Instance.Play(sequence);
+        }
+
+        private IEnumerator FireWhenRevealed()
+        {
+            while (GameFlow.SilentSetup) yield return null;
+            _pendingReveal = false;
+            Fire();
         }
 
         private IEnumerator FireDelayed()

@@ -94,6 +94,7 @@ namespace Echoes.Menus
             _prevInputEnabled = playerInput.InputEnabled;
             playerInput.InputEnabled = false;
             Time.timeScale = 0f;
+            Cursor.visible = true;
             if (pausePanel != null) pausePanel.SetActive(true);
             if (locationBox != null) locationBox.SetActive(false);
 
@@ -121,6 +122,7 @@ namespace Echoes.Menus
             IsPaused = false;
             playerInput.InputEnabled = _prevInputEnabled;
             Time.timeScale = 1f;
+            Cursor.visible = false;
             if (pausePanel != null) pausePanel.SetActive(false);
             if (locationBox != null) locationBox.SetActive(true);
 

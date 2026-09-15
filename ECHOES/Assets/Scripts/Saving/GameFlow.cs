@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using Echoes.Dialogue;
 
 namespace Echoes.Saving
 {
@@ -18,9 +20,31 @@ namespace Echoes.Saving
         // escena (GameEntryPoint/TitleScreen), no hace falta tocarlo desde fuera de ahí.
         public static bool LeavingScene;
 
+        // Cierto desde que LevelManager.Awake() coloca el estado inicial de la sala hasta que
+        // GameEntryPoint.Reveal() retira el aviso de autoguardado — cubre tanto el "New Game"
+        // (la sala inicial se aplica en Awake, antes de que exista nada en pantalla) como el
+        // "Continue"/detección (la sala guardada se aplica en PrepareContinueState, mientras el
+        // aviso sigue tapando la pantalla). DialogueTrigger lo consulta para no arrancar un
+        // diálogo mientras el jugador no puede verlo todavía.
+        public static bool SilentSetup;
+
         // Aviso de autoguardado (pantalla de carga): se muestra una única vez por sesión, en el
         // primer cambio de sala real.
         public static bool AutosaveNoticeShown;
+
+        // Diálogos con Play Once ya reproducidos en esta sesión de la app. DialogueTrigger._fired
+        // es una variable de instancia normal, así que una recarga de escena (Restart Room,
+        // detección, Continue) la resetea sin querer — con solo eso, el diálogo de entrada de una
+        // sala volvía a sonar cada vez que la reiniciabas. Esto vive aparte, en GameFlow (estático,
+        // sobrevive a SceneManager.LoadScene), para que "solo una vez" signifique de verdad una
+        // vez por sesión y no una vez por instancia de escena.
+        private static readonly HashSet<DialogueSequence> _playedDialogues = new();
+
+        public static bool HasPlayed(DialogueSequence sequence) => sequence != null && _playedDialogues.Contains(sequence);
+        public static void MarkPlayed(DialogueSequence sequence)
+        {
+            if (sequence != null) _playedDialogues.Add(sequence);
+        }
 
         // Cronómetro de partida: de cuando acaba la cinemática de entrada (o se salta, en
         // Continue/salto de depuración) a cuando acaba el diálogo de cierre. Se usa Time.time
@@ -50,6 +74,7 @@ namespace Echoes.Saving
             AutosaveNoticeShown = false;
             _timerStart = -1f;
             _timerStop = -1f;
+            _playedDialogues.Clear();
         }
     }
 }
